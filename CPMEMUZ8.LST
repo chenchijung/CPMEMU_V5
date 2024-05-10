@@ -1,0 +1,260 @@
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.32 Page   1
+CPMEMUZ8Z80
+
+    1                   ;
+    2                   ;    CP/M Hardware Emulator for PC-XT & PC-AT
+    3                   ;      --- The Environment in Z80's Memory
+    4                   ;	   BY N.T.U.E.E B74503097 Chen CHi-Jung 1988
+    5                   ;
+    6                   ;	SYSTEM DEFINITION
+    7                   ;
+    8         0000      		ORG	0000H
+    9 0000  C3 FF03     START:		JP	BIOS		;TO BIOS EMULATOR
+   10 0003  00          IOBYTE: 	DB	00		;IOBYTE
+   11 0004  00          LOGIN:		DB	00		;LOGIN BYTE
+   12 0005  C3 FE00     		JP	BDOS		;TO BDOS EMULATOR
+   13                   ;
+   14                   ;  TPA range:from 0100H to FDFFH
+   15                   ;
+   16                   ;  BDOS EMULATION
+   17                   ;
+   18         FE00      		ORG	0FE00H
+   19                   
+   20 FE00              BDOS:
+   21 FE00  CD FE13     		CALL	SAVEREGS
+   22 FE03  3E 01       		LD	A,1
+   23 FE05  32 FF81     		LD	(BDOSCALL),A
+   24 FE08  D3 F0       		OUT	(0F0H),A	;TRANSFER CONTROL TO PC
+   25 FE0A  3E 00       		LD	A,0
+   26 FE0C  32 FF81     		LD	(BDOSCALL),A
+   27 FE0F  CD FE4C     		CALL	LOADREGS
+   28 FE12  C9          		RET
+   29 FE13              SAVEREGS:				;SAVE REGISTERS TO MEMORY
+   30 FE13  ED 43 FF84  		LD	(REGBC),BC	;SAVE BC
+   31 FE17  ED 53 FF86  		LD	(REGDE),DE	;SAVE DE
+   32 FE1B  DD 22 FF8A  		LD	(REGIX),IX	;SAVE IX
+   33 FE1F  FD 22 FF8C  		LD	(REGIY),IY	;SAVE IY
+   34 FE23  ED 73 FF8E  		LD	(REGSP),SP	;SAVE STACK POINTER
+   35 FE27  22 FF88     		LD	(REGHL),HL	;SAVE HL
+   36 FE2A  E1          		POP	HL		;GET IP
+   37 FE2B  D1          		POP	DE
+   38 FE2C  D5          		PUSH	DE
+   39 FE2D  E5          		PUSH	HL
+   40 FE2E  ED 53 FF90  		LD	(REGIP),DE
+   41 FE32  F5          		PUSH	AF
+   42 FE33  E1          		POP	HL
+   43 FE34  22 FF82     		LD	(REGAF),HL	;SAVE A & FLAGS
+   44                   		
+   45 FE37  08          		EX	AF,AF'		;SWAP TO ANOTHER SET OF REGISTER
+   46 FE38  D9          		EXX
+   47 FE39  F5          		PUSH	AF
+   48 FE3A  E1          		POP	HL
+   49 FE3B  22 FF93     		LD	(REGAF1),HL	;SAVE AF'
+   50 FE3E  ED 43 FF95  		LD	(REGBC1),BC	;SAVE BC'
+   51 FE42  ED 53 FF97  		LD	(REGDE1),DE	;SAVE DE'
+   52 FE46  22 FF99     		LD	(REGHL1),HL	;SAVE HL'
+   53 FE49  08          		EX	AF,AF'		;SWAP BACK TO ORIGINAL REGISTER
+   54 FE4A  D9          		EXX
+   55 FE4B  C9          		RET
+   56 FE4C              LOADREGS:				;LOAD REGISTERS FROM MEMORY
+   57 FE4C  2A FF82     		LD	HL,(REGAF)
+   58 FE4F  7C          		LD	A,H		;LOAD A
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.32 Page   2
+CPMEMUZ8Z80
+
+   59 FE50  ED 4B FF84  		LD	BC,(REGBC)	;LOAD BC
+   60 FE54  ED 5B FF86  		LD	DE,(REGDE)	;LOAD DE
+   61 FE58  2A FF88     		LD	HL,(REGHL)	;LOAD HL
+   62 FE5B  DD 2A FF8A  		LD	IX,(REGIX)	;LOAD IX
+   63 FE5F  FD 2A FF8C  		LD	IY,(REGIY)	;LOAD IY
+   64 FE63  ED 7B FF8E  		LD	SP,(REGSP)	;LOAD STACK POINTER
+   65                   		
+   66 FE67  08          		EX	AF,AF'		;LOAD ANOTHER SET OF REGISTER
+   67 FE68  D9          		EXX
+   68 FE69  2A FF93     		LD	HL,(REGAF1)
+   69 FE6C  7C          		LD	A,H		;LOAD A'
+   70 FE6D  ED 4B FF95  		LD	BC,(REGBC1)	;LOAD BC'
+   71 FE71  ED 5B FF97  		LD	DE,(REGDE1)	;LOAD DE'
+   72 FE75  2A FF99     		LD	HL,(REGHL1)	;LOAD HL'
+   73 FE78  08          		EX	AF,AF'		;SWAP BACK TO ORIGINAL REGISTER
+   74 FE79  D9          		EXX
+   75 FE7A  C9          		RET
+   76                   ;-----------------------------------------------------		
+   77 FE7B              COLDBOOT:
+   78 FE7B              WARMBOOT:
+   79 FE7B  21 FFFF     		LD	HL,0FFFFH
+   80 FE7E  F9          		LD	SP,HL
+   81 FE7F  3E 02       		LD	A,2
+   82 FE81  3A 0004     		LD	A,(LOGIN)
+   83 FE84  E6 0F       		AND	0FH
+   84 FE86  4F          		LD	C,A
+   85 FE87  CD FF5A     		CALL	CALLPC
+   86 FE8A  C3 FF60     		JP	MAIN
+   87 FE8D              CONSTATUS:
+   88 FE8D  3E 03       		LD	A,3
+   89 FE8F  CD FF5A     		CALL	CALLPC
+   90 FE92  3A FF83     		LD	A,(REGAF+1)
+   91 FE95  C9          		RET
+   92 FE96              CONINPUT:
+   93 FE96  3E 04       		LD	A,4
+   94 FE98  CD FF5A     		CALL	CALLPC
+   95 FE9B  3A FF83     		LD	A,(REGAF+1)
+   96 FE9E  C9          		RET
+   97 FE9F              CONOUTPUT:
+   98 FE9F  F5          		PUSH	AF
+   99 FEA0  79          		LD	A,C
+  100 FEA1  32 FF83     		LD	(REGAF+1),A
+  101 FEA4  3E 05       		LD	A,5
+  102 FEA6  CD FF5A     		CALL	CALLPC
+  103 FEA9  F1          		POP	AF
+  104 FEAA  C9          		RET
+  105 FEAB              LISOUTPUT:
+  106 FEAB  F5          		PUSH	AF
+  107 FEAC  79          		LD	A,C
+  108 FEAD  32 FF83     		LD	(REGAF+1),A
+  109 FEB0  3E 06       		LD	A,6
+  110 FEB2  CD FF5A     		CALL	CALLPC
+  111 FEB5  F1          		POP	AF
+  112 FEB6  C9          		RET
+  113 FEB7              PUNOUTPUT:
+  114 FEB7  F5          		PUSH	AF
+  115 FEB8  79          		LD	A,C
+  116 FEB9  32 FF83     		LD	(REGAF+1),A
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.32 Page   3
+CPMEMUZ8Z80
+
+  117 FEBC  3E 07       		LD	A,7
+  118 FEBE  CD FF5A     		CALL	CALLPC
+  119 FEC1  F1          		POP	AF
+  120 FEC2  C9          		RET
+  121 FEC3              RDRINPUT:
+  122 FEC3  3E 08       		LD	A,8
+  123 FEC5  CD FF5A     		CALL	CALLPC
+  124 FEC8  3A FF83     		LD	A,(REGAF+1)
+  125 FECB  C9          		RET
+  126 FECC              HOMEDISK:
+  127 FECC  F5          		PUSH	AF
+  128 FECD  3E 09       		LD	A,9
+  129 FECF  CD FF5A     		CALL	CALLPC
+  130 FED2  F1          		POP	AF
+  131 FED3  C9          		RET
+  132 FED4              SELDISK:
+  133 FED4  F5          		PUSH	AF
+  134 FED5  79          		LD	A,C
+  135 FED6  32 FF83     		LD	(REGAF+1),A
+  136 FED9  3E 0A       		LD	A,10
+  137 FEDB  CD FF5A     		CALL	CALLPC
+  138 FEDE  2A FF88     		LD	HL,(REGHL)
+  139 FEE1  F1          		POP	AF
+  140 FEE2  C9          		RET
+  141 FEE3              SETTRACK:
+  142 FEE3  F5          		PUSH	AF
+  143 FEE4  79          		LD	A,C
+  144 FEE5  32 FF83     		LD	(REGAF+1),A
+  145 FEE8  3E 0B       		LD	A,11
+  146 FEEA  C3 FF5A     		JP	CALLPC
+  147 FEED  F1          		POP	AF
+  148 FEEE  C9          		RET
+  149 FEEF              SETSECTOR:
+  150 FEEF  F5          		PUSH	AF
+  151 FEF0  79          		LD	A,C
+  152 FEF1  32 FF83     		LD	(REGAF+1),A
+  153 FEF4  3E 0C       		LD	A,12
+  154 FEF6  C3 FF5A     		JP	CALLPC
+  155 FEF9  F1          		POP	AF
+  156 FEFA  C9          		RET
+  157                   		
+  158         FF00      		ORG	0FF00H
+  159 FF00  C3 FE7B     		JP	COLDBOOT
+  160 FF03              BIOS:					;BIOS JUMP TABLE
+  161 FF03  C3 FE7B     		JP	WARMBOOT
+  162 FF06  C3 FE8D     		JP	CONSTATUS
+  163 FF09  C3 FE96     		JP	CONINPUT
+  164 FF0C  C3 FE9F     		JP	CONOUTPUT
+  165 FF0F  C3 FEAB     		JP	LISOUTPUT
+  166 FF12  C3 FEB7     		JP	PUNOUTPUT
+  167 FF15  C3 FEC3     		JP	RDRINPUT
+  168 FF18  C3 FECC     		JP	HOMEDISK
+  169 FF1B  C3 FED4     		JP	SELDISK
+  170 FF1E  C3 FEE3     		JP	SETTRACK
+  171 FF21  C3 FEEF     		JP	SETSECTOR
+  172 FF24  C3 FF30     		JP	SETDMA
+  173 FF27  C3 FF3F     		JP	READSEC
+  174 FF2A  C3 FF48     		JP	WRITESEC
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.32 Page   4
+CPMEMUZ8Z80
+
+  175 FF2D  C3 FF51     		JP	LISTSTATUS		
+  176                   		
+  177 FF30              SETDMA:
+  178 FF30  E5          		PUSH	HL
+  179 FF31  F5          		PUSH	AF
+  180 FF32  60          		LD	H,B
+  181 FF33  69          		LD	L,C
+  182 FF34  22 FF84     		LD	(REGBC),HL
+  183 FF37  3E 0D       		LD	A,13
+  184 FF39  CD FF5A     		CALL	CALLPC
+  185 FF3C  F1          		POP	AF
+  186 FF3D  E1          		POP	HL
+  187 FF3E  C9          		RET
+  188 FF3F              READSEC:
+  189 FF3F  3E 0E       		LD	A,14
+  190 FF41  CD FF5A     		CALL	CALLPC
+  191 FF44  3A FF83     		LD	A,(REGAF+1)
+  192 FF47  C9          		RET
+  193 FF48              WRITESEC:
+  194 FF48  3E 0F       		LD	A,15
+  195 FF4A  CD FF5A     		CALL	CALLPC
+  196 FF4D  3A FF83     		LD	A,(REGAF+1)
+  197 FF50  C9          		RET
+  198 FF51              LISTSTATUS:
+  199 FF51  3E 10       		LD	A,16
+  200 FF53  CD FF5A     		CALL	CALLPC
+  201 FF56  3A FF83     		LD	A,(REGAF+1)
+  202 FF59  C9          		RET
+  203                   
+  204                   ;
+  205                   ;  BIOS PC CALLER
+  206                   ;
+  207 FF5A              CALLPC:
+  208 FF5A  32 FF92     		LD	(BIOSCODE),A
+  209 FF5D  D3 F0       		OUT	(0F0H),A
+  210 FF5F  C9          		RET
+  211 FF60              MAIN:
+  212 FF60  3E 01       		LD	A,1
+  213 FF62  32 FF80     		LD	(EOP),A
+  214 FF65  D3 F0       		OUT	(0F0H),A
+  215 FF67  CD 0100     		CALL	0100H
+  216 FF6A  21 FFFF     		LD	HL,0FFFFH
+  217 FF6D  F9          		LD	SP,HL
+  218 FF6E  C3 FF60     		JP	MAIN
+  219                   
+  220                   ;
+  221         FF80      		ORG	0FF80H
+  222 FF80  00          EOP		DB	0	;END OF PROGRAM INDICATER
+  223 FF81  00          BDOSCALL	DB	0	; 0 --> NOT BDOS CALL
+  224                   ;				  1 --> BDOS CALL
+  225                   ;   REGISTER STORAGE FOR BDOS
+  226                   ;
+  227 FF82  0000        REGAF		DW	0
+  228 FF84  0000        REGBC		DW	0
+  229 FF86  0000        REGDE		DW	0
+  230 FF88  0000        REGHL		DW	0
+  231 FF8A  0000        REGIX		DW	0
+  232 FF8C  0000        REGIY		DW	0
+Z80ASM SuperFast Relocating Macro Assembler     	    Z80ASM 1.32 Page   5
+CPMEMUZ8Z80
+
+  233 FF8E  0000        REGSP		DW	0
+  234 FF90  0000        REGIP		DW	0
+  235                   ;   BIOS CODE FOR BIOS CALL
+  236 FF92  00          BIOSCODE	DB	0
+  237                   ;   ANOTHER SET OF REGISTER
+  238 FF93  0000        REGAF1		DW	0
+  239 FF95  0000        REGBC1		DW	0
+  240 FF97  0000        REGDE1		DW	0
+  241 FF99  0000        REGHL1		DW	0
+  242                   		END
+ 0 Error(s) Detected.
+ 65435 Absolute Bytes. 40 Symbols Detected.
+         EOP		DB

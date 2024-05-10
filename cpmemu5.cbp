@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="cpmemu5" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/cpmemu5" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/cpmemu5" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-m64" />
+			<Add option="-DGNU_READLINE" />
+			<Add option="-DWIN" />
+			<Add option="-DZ80DEBUG" />
+			<Add option='-DLIBDIR=\&quot;/\&quot;' />
+		</Compiler>
+		<Linker>
+			<Add option="-static-libstdc++" />
+			<Add option="-static-libgcc" />
+			<Add option="-m64" />
+			<Add option='-DLIBDIR=\&quot;/\&quot;' />
+			<Add library="ncurses" />
+			<Add library="readline" />
+		</Linker>
+		<Unit filename="cpmbdos.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cpmbios.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cpmemu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cpmemu.h" />
+		<Unit filename="cpmemuin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cpmglob.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cpmglob.h" />
+		<Unit filename="mem_mmu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mem_mmu.h" />
+		<Unit filename="simz80.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="simz80.h" />
+		<Unit filename="z80dsm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>
