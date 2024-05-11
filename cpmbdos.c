@@ -723,6 +723,7 @@ void bdos16(void)      /* close file */
 }
 /*----------------------------------------------------------------------*/
 UINT8 filesearchingflag = 0;
+char filesearchingpattern[20];
 #ifdef WIN
 static   struct _finddata_t c_file;
 static   intptr_t hFile;
@@ -910,6 +911,8 @@ void bdos17(void)	 /* search for first */
         {
             fillfcb((char *)&ram[dmaaddr], entry->d_name);
             filesearchingflag = 1; // set file searching flag
+			// record file searching pattern for bdos18 (Linux only)
+			strncpy(filesearchingpattern, filename, sizeof(filesearchingpattern)); 
             *rega = 0x00;
         }
         else
@@ -985,6 +988,7 @@ void bdos18(void)	 /* search for next */
         ReturnZ80;
         return;
     }
+	strncpy(filename, filesearchingpattern, sizeof(filename)); // get filesarching pattern from bdos17()
     while ((entry = readdir(dp)) != NULL)
     {
         lstat(entry->d_name, &statbuf);
@@ -1005,6 +1009,7 @@ void bdos18(void)	 /* search for next */
         closedir(dp);
         // Searching complete
         filesearchingflag = 0;
+		filesearchingpattern[0]=0x00; // clear filesearching pattern
         *rega = 0xff; // end of directory
     }
     *regh = 0x00;
