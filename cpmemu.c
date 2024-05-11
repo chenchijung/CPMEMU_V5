@@ -842,7 +842,7 @@ void submit(char *ptr1)
         {
             //ch = toupper(getc(subfile));
             ch = getc(subfile);
-            printf("%c", ch); // debug
+            //printf("%c", ch); // debug
             if (ch == '$')
             {
                 ch2 = getc(subfile);
